@@ -22,11 +22,17 @@ public class ContactsCsvImporter
     {
         await _db.Database.EnsureCreatedAsync(ct);
 
-        if (await _db.Contacts.AsNoTracking().AnyAsync(ct))
+        var existingCount = await _db.Contacts.AsNoTracking().CountAsync(ct);
+
+        if (existingCount >= 500_000)
         {
-            _log.LogInformation("Contacts table not empty. Import skipped.");
-            return 0;
+            _log.LogInformation("Contacts already fully imported.");
+            return existingCount;
         }
+
+        _log.LogWarning("Contacts table incomplete ({Count} rows). Re-importing...", existingCount);
+        await _db.Database.EnsureDeletedAsync(ct);
+        await _db.Database.EnsureCreatedAsync(ct);
 
         if (!File.Exists(csvPath))
             throw new FileNotFoundException($"CSV not found: {csvPath}");
