@@ -1,0 +1,7 @@
+data/*.csv
+data/*.zip
+*.db
+backend/**/bin/
+backend/**/obj/
+frontend/node_modules/
+frontend/dist/
